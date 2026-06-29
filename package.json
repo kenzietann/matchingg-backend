@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "fastify": "^5.9.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "tsx": "^4.22.4"
   }
 }
