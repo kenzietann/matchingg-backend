@@ -7,9 +7,9 @@ const fastify = Fastify({
 
 fastify.register(routes);
 
-fastify.listen({ port: 3001, host: '0.0.0.0' }, (err, address) => {
-  if(err){
-    fastify.log.error(err);
-  }
-  fastify.log.info(`Server is Listening on ${address}`)
-})
+try {
+  await fastify.listen({ port: 3002, host: '0.0.0.0' });
+} catch (err) {
+  fastify.log.error(err);
+  process.exit(1);
+}

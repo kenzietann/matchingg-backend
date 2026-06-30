@@ -24,4 +24,5 @@ TestResults.xml
 
 .czrc
 
-/node_modules
+node_modules
+dist
