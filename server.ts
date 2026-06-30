@@ -1,10 +1,12 @@
 import Fastify from 'fastify';
 import routes from './routes/routes.js';
+import dbConnector from './plugins/database.js';
 
 const fastify = Fastify({
   logger: true
 })
 
+fastify.register(dbConnector);
 fastify.register(routes);
 
 try {
