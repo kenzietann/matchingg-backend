@@ -1,16 +1,12 @@
 import { FastifyInstance } from "fastify";
+import { UserEntity } from "../entities/user/user.entity";
 
-async function routes(fastify: FastifyInstance){
+export async function routes(fastify: FastifyInstance){
   fastify.get('/', async (req, res) => {
-    return { hello: "World" }
-  });
+    const userRepository = fastify.orm.getRepository(UserEntity);
 
-  fastify.get('/db', async (req, res) => {
-    await fastify.pg.query('CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(255))');
-    await fastify.pg.query("INSERT INTO users (name) VALUES ('Kenzie Tandera')");
-    const result = await fastify.pg.query('SELECT * FROM users');
-    return result.rows;
+    const users = await userRepository.find();
+
+    return users;
   });
 }
-
-export default routes;

@@ -1,12 +1,13 @@
+import "reflect-metadata";
 import Fastify from 'fastify';
-import routes from './routes/routes.js';
-import dbConnector from './plugins/database.js';
+import { routes } from './routes/routes.js';
+import { dbConnector } from './plugins/database.js';
 
 const fastify = Fastify({
   logger: true
 })
 
-fastify.register(dbConnector);
+dbConnector(fastify);
 fastify.register(routes);
 
 try {
