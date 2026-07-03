@@ -6,6 +6,8 @@
     "strict": true,
     "types": ["node"],
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+  },
+    "ts-node": { "esm": true },
 }

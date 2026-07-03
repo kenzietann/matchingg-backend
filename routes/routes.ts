@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { UserEntity } from "../entities/user/user.entity";
+import { UserEntity } from "../entities/user/user.entity.js";
 
 export async function routes(fastify: FastifyInstance){
   fastify.get('/', async (req, res) => {
