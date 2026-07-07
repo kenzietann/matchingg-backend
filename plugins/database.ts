@@ -1,12 +1,19 @@
+import 'reflect-metadata';
 import 'dotenv/config'
-import fastifyPostgres from '@fastify/postgres';
-import fastifyPlugin from 'fastify-plugin';
 import { FastifyInstance } from 'fastify';
+import dbConnection from 'typeorm-fastify-plugin';
+import { UserEntity } from '../core/entities/user/user.entity.js';
 
-async function dbConnector(fastify: FastifyInstance){
-  fastify.register(fastifyPostgres, {
-    connectionString: process.env.DB_CONNECTION
+export async function dbConnector(fastify: FastifyInstance){
+  fastify.register(dbConnection, {
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'kenkzuha',
+    password: '',
+    database: 'matchingg',
+    synchronize: true, 
+    logging: false,
+    entities: [UserEntity],
   })
 }
-
-export default fastifyPlugin(dbConnector);
