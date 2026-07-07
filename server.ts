@@ -1,13 +1,29 @@
 import "reflect-metadata";
+import "dotenv/config"
 import Fastify from 'fastify';
-import { routes } from './routes/routes.js';
+import routes from "./core/routes/routes.handler.js";
 import { dbConnector } from './plugins/database.js';
+import fastifyJwt from "@fastify/jwt";
+import fastifyCookie from "@fastify/cookie";
+import fastifyRedis from "@fastify/redis";
 
 const fastify = Fastify({
   logger: true
 })
 
 dbConnector(fastify);
+fastify.register(fastifyCookie);
+fastify.register(fastifyJwt, {
+  secret: process.env.JWT_SECRET!,
+  cookie: {
+    cookieName: 'token',
+    signed: false
+  }
+});
+fastify.register(fastifyRedis, {
+  url: 'redis://127.0.0.1',
+  closeClient: true
+});
 fastify.register(routes);
 
 try {
