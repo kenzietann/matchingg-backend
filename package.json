@@ -1,15 +1,22 @@
 {
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.2.0",
+    "@fastify/jwt": "^10.1.0",
     "@fastify/postgres": "^6.0.2",
+    "@fastify/redis": "^8.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "fastify": "^5.9.0",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
+    "resend": "^6.17.1",
     "typeorm": "^0.3.30",
     "typeorm-fastify-plugin": "^4.0.0"
   },
   "type": "module",
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.0.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
