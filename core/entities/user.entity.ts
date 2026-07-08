@@ -1,11 +1,17 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 
-@Entity()
+@Entity('users')
 export class UserEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column() 
-  name!: string;
+  email!: string
+
+  @Column()
+  password!: string;
+
+  @Column()
+  isVerified!: boolean;
 }

@@ -6,12 +6,18 @@ import { dbConnector } from './plugins/database.js';
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import fastifyRedis from "@fastify/redis";
+import fastifyCors from "@fastify/cors";
 
 const fastify = Fastify({
   logger: true
 })
 
 dbConnector(fastify);
+fastify.register(fastifyCors, {
+  origin: 'http://localhost:4200',
+  credentials: true
+});
+
 fastify.register(fastifyCookie);
 fastify.register(fastifyJwt, {
   secret: process.env.JWT_SECRET!,
@@ -24,6 +30,7 @@ fastify.register(fastifyRedis, {
   url: 'redis://127.0.0.1',
   closeClient: true
 });
+
 fastify.register(routes);
 
 try {
