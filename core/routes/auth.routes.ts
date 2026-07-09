@@ -2,6 +2,8 @@ import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
 import { loginUser, signup, verifyEmail } from "../services/auth.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
+import { rateLimit } from "../services/ratelimit.js";
+import { AppError } from "../errors/error.handler.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
   fastify.post('/signup', async (req, res) => {
@@ -33,6 +35,9 @@ export default async function authRoutes(fastify: FastifyInstance){
   fastify.get('/me', {
      preHandler: authenticate
     }, async(req, res) => {
+      const check_auth_ratelimit_key = `ratelimit:checkauth:${req.ip}`;
+      const attempts = await rateLimit(fastify, check_auth_ratelimit_key, 60);
+      if(attempts >= 20) return res.code(429).send({ message: 'Too many requests' });
       return res.code(200).send({ message: 'Authenticated' });
   });
 }
