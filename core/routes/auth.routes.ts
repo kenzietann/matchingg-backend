@@ -1,17 +1,38 @@
 import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
-import { createUser, verifyEmail } from "../services/auth.service.js";
+import { loginUser, signup, verifyEmail } from "../services/auth.service.js";
+import { authenticate } from "../hooks/auth.hooks.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
   fastify.post('/signup', async (req, res) => {
     const userData = req.body as AuthDto;
-    await createUser(fastify, userData);
+    await signup(fastify, req.ip, userData);
     return res.code(200).send('')
   });
 
   fastify.get('/verify-email', async (req, res) => {
     const { token } = req.query as { token: string };
     await verifyEmail(fastify, token);
-    return res.code(200).send({ message: 'Email verified successfully' })
-  })
+    return res.code(200).send({ message: 'Email verified successfully' });
+  });
+
+  fastify.post('/login', async(req, res) => {
+    const userData = req.body as AuthDto;
+    const token = await loginUser(fastify, req.ip, userData);
+
+    res.cookie('token', token.token, {
+      httpOnly: true,
+      secure: true, 
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    return res.code(200).send({ message: token.message });
+  });
+
+  fastify.get('/me', {
+     preHandler: authenticate
+    }, async(req, res) => {
+      return res.code(200).send({ message: 'Authenticated' });
+  });
 }

@@ -7,11 +7,11 @@ import bcrypt from 'bcrypt';
 import { sendVerificationEmail } from "./resend.service.js";
 import { createVerifiedUser } from "./users.service.js";
 
-export async function createUser(fastify: FastifyInstance, userData: AuthDto){
-  const signupRateKey = `ratelimit:signup:${userData.email}`;
+export async function signup(fastify: FastifyInstance, userIp: string, userData: AuthDto){
+  const signupRateKey = `ratelimit:signup:${userIp}`;
   const attempts = await rateLimit(fastify, signupRateKey, 3600);
 
-  if(attempts > 5) throw new AppError('Too many requests. Please wait before trying again', 429);
+  if(attempts >= 3) throw new AppError('Too many requests. Please wait before trying again', 429);
 
   const userRepository = fastify.orm.getRepository(UserEntity);
   const existingEmail = await userRepository.findOne({ where: { email: userData.email } });
@@ -61,4 +61,36 @@ export async function verifyEmail(fastify: FastifyInstance, token: string){
 
   await fastify.redis.del(`pending:${token}`);
   await createVerifiedUser(fastify, pending);
+}
+
+export async function loginUser(fastify: FastifyInstance, userIp: string, userData: AuthDto){
+  const loginRateKey = `ratelimit:login:${userIp}`;
+  const attempts = await fastify.redis.get(loginRateKey);
+
+  if(attempts && Number(attempts) >= 5) throw new AppError('Too many requests. Please wait 15 minute before trying again', 429);
+
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  const userByEmail = await userRepository.findOne({ where: { email: userData.email } });
+  if(!userByEmail){
+    await rateLimit(fastify, loginRateKey, 900);
+    throw new AppError('Credentials invalid', 404);
+  }
+
+  const isMatch = await bcrypt.compare(userData.password, userByEmail.password);
+  if(!isMatch){
+    await rateLimit(fastify, loginRateKey, 900);
+    throw new AppError('Credentials invalid', 404);
+  }
+  await fastify.redis.del(loginRateKey);
+
+  const jwtPayload = {
+    userId: userByEmail.id, 
+    email: userByEmail.email,
+    type: 'login'
+  };
+
+  return {
+    message: 'Login Successful!',
+    token: fastify.jwt.sign(jwtPayload)
+  }
 }
