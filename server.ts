@@ -7,12 +7,15 @@ import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import fastifyRedis from "@fastify/redis";
 import fastifyCors from "@fastify/cors";
+import multipart from '@fastify/multipart';
+import { multipartRegister } from "./plugins/multipart.js";
 
 const fastify = Fastify({
   logger: true
 });
 
 dbConnector(fastify);
+multipartRegister(fastify);
 fastify.register(fastifyCors, {
   origin: 'http://localhost:4200',
   credentials: true

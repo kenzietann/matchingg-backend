@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
 import { loginUser, signup, verifyEmail } from "../services/auth.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
-import { rateLimit } from "../services/ratelimit.js";
+import { rateLimit } from "../services/redis.service.js";
 import { AppError } from "../errors/error.handler.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
