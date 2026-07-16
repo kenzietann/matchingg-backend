@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
 import { UserEntity } from "../entities/user.entity.js";
-import { rateLimit } from "./ratelimit.js";
+import { rateLimit } from "./redis.service.js";
 import { AppError } from "../errors/error.handler.js";
 import bcrypt from 'bcrypt';
 import { sendVerificationEmail } from "./resend.service.js";

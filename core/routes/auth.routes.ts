@@ -16,6 +16,7 @@ export default async function authRoutes(fastify: FastifyInstance){
     return res.code(200).send({ message: 'Email verified successfully' });
   });
 
+
   fastify.post('/login', async(req, res) => {
     const userData = req.body as AuthDto;
     const token = await loginUser(fastify, req.ip, userData);
@@ -34,5 +35,14 @@ export default async function authRoutes(fastify: FastifyInstance){
      preHandler: authenticate
     }, async(req, res) => {
       return res.code(200).send({ message: 'Authenticated' });
+  });
+
+  fastify.post('/logout', async(req, res) => {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+    });
+    return res.code(200).send({ message: "Logged out successfully" });
   });
 }
