@@ -4,7 +4,7 @@ import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
 
 export async function createVerifiedUser(fastify: FastifyInstance, userData: AuthDto){
-  const userRepository = await fastify.orm.getRepository(UserEntity);
+  const userRepository = fastify.orm.getRepository(UserEntity);
   try {
     const user = userRepository.create({
       email: userData.email,
