@@ -18,6 +18,7 @@ export default async function authRoutes(fastify: FastifyInstance){
     return res.code(200).send({ message: 'Email verified successfully' });
   });
 
+
   fastify.post('/login', async(req, res) => {
     const userData = req.body as AuthDto;
     const token = await loginUser(fastify, req.ip, userData);
@@ -39,5 +40,14 @@ export default async function authRoutes(fastify: FastifyInstance){
       const attempts = await rateLimit(fastify, check_auth_ratelimit_key, 60);
       if(attempts >= 20) return res.code(429).send({ message: 'Too many requests' });
       return res.code(200).send({ message: 'Authenticated' });
+  });
+
+  fastify.post('/logout', async(req, res) => {
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+    });
+    return res.code(200).send({ message: "Logged out successfully" });
   });
 }

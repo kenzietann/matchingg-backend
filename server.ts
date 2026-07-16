@@ -10,7 +10,7 @@ import fastifyCors from "@fastify/cors";
 
 const fastify = Fastify({
   logger: true
-})
+});
 
 dbConnector(fastify);
 fastify.register(fastifyCors, {
