@@ -1,19 +1,22 @@
 import 'reflect-metadata';
-import 'dotenv/config'
+import 'dotenv/config';
 import { FastifyInstance } from 'fastify';
-import dbConnection from 'typeorm-fastify-plugin';
+import { DataSource } from 'typeorm';
 import { UserEntity } from '../core/entities/user.entity.js';
 
-export async function dbConnector(fastify: FastifyInstance){
-  fastify.register(dbConnection, {
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'kenkzuha',
-    password: '',
-    database: 'matchingg',
-    synchronize: true,
-    logging: false,
-    entities: [UserEntity],
-  });
+export const AppDataSource = new DataSource({
+  type: 'postgres',
+  host: 'localhost',
+  port: 5432,
+  username: 'kenkzuha',
+  password: '',
+  database: 'matchingg',
+  synchronize: true,
+  logging: false,
+  entities: [UserEntity],
+});
+
+export async function dbConnector(fastify: FastifyInstance) {
+  await AppDataSource.initialize();
+  fastify.decorate('orm', AppDataSource);
 }

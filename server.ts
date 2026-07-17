@@ -14,7 +14,7 @@ const fastify = Fastify({
   logger: true
 });
 
-dbConnector(fastify);
+await dbConnector(fastify);
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
   origin: 'http://localhost:4200',

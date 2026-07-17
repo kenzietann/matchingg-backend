@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.1",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/jwt": "^10.1.0",
@@ -19,6 +20,8 @@
   },
   "type": "module",
   "devDependencies": {
+    "@swc/core": "^1.15.43",
+    "@swc/helpers": "^0.5.23",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.0.1",
     "ts-node": "^10.9.2",
@@ -26,6 +29,6 @@
     "typescript": "^6.0.3"
   },
   "scripts": {
-    "dev": "node --loader ts-node/esm server.ts"
+    "dev": "tsx server.ts"
   }
 }

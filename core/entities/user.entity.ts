@@ -6,12 +6,12 @@ export class UserEntity {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column() 
-  email!: string
+  @Column({ type: 'varchar' })
+  email!: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   password!: string;
 
-  @Column()
+  @Column({ type: 'boolean' })
   isVerified!: boolean;
 }
