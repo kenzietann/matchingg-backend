@@ -2,6 +2,8 @@ import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
 import Anthropic from "@anthropic-ai/sdk";
 import { AppError } from '../errors/error.handler.js';  
+import { FastifyInstance } from 'fastify';
+import { ResultsEntity } from '../entities/results.entity.js';
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
@@ -29,6 +31,7 @@ export async function compatibilityScore(cvText: string, jdText: string){
 
               Your task is to score how well the candidate's CV matches the job description. The CV text may contain OCR noise (misread characters, spacing errors, garbled symbols) — use context to interpret it as accurately as possible.
               IMPORTANT!!: Your entire response — all strings inside the JSON — must be written in the same language as the job description. If the job description is in Japanese, respond entirely in Japanese. If in English, respond in English.
+                           Detect the dominant language of the job description and respond entirely in that language. If the job description is predominantly Japanese, respond in Japanese. If predominantly English, respond in English.
               Analyze the following:
 
               CV:
@@ -64,6 +67,8 @@ export async function compatibilityScore(cvText: string, jdText: string){
                 "score": <integer 0-100>,
                 "label": "<match label>",
                 "percentile": <integer>,
+                "jobTitle": "<job title extracted from the job description, otherwise null>"
+                "companyName": "<company name if mentioned in the job description, otherwise null>"
                 "breakdown": {
                   "skills_match": <integer 0-100>,
                   "experience_level": <integer 0-100>,
@@ -83,4 +88,27 @@ export async function compatibilityScore(cvText: string, jdText: string){
   if (block.type !== 'text') throw new AppError('Unexpected Response type', 500);
   const raw = block.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
   return JSON.parse(raw);
+}
+
+export async function saveCachedResult(fastify: FastifyInstance, userId: number, cacheKey: string){
+  const cached = await fastify.redis.get(`check:${cacheKey}`);
+  if(!cached) throw new AppError('Result not found or expired', 404);
+  const result = JSON.parse(cached);
+
+  const resultsRepository = fastify.orm.getRepository(ResultsEntity);
+
+  const data = resultsRepository.create({
+    userId,
+    jobTitle: result.jobTitle,
+    companyName: result.companyName,
+    score: result.score,
+    label: result.label,
+    percentile: result.percentile,
+    breakdown: result.breakdown,
+    strengths: result.strengths,
+    gaps: result.gaps,
+    recommendation: result.recommendation
+  });
+
+  return await resultsRepository.save(data);
 }
