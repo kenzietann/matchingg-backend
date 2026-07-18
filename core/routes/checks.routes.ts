@@ -1,7 +1,8 @@
 import { FastifyInstance } from "fastify";
-import { compatibilityScore, extract } from "../services/checks.service.js";
+import { compatibilityScore, extract, saveCachedResult } from "../services/checks.service.js";
 import { rateLimit } from "../services/redis.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
+import { AppError } from "../errors/error.handler.js";
 
 export default async function checksRoutes(fastify: FastifyInstance){
   fastify.post('/extract', { preHandler: authenticate }, async(req, res) => {
@@ -27,6 +28,27 @@ export default async function checksRoutes(fastify: FastifyInstance){
 
     const { cvText, jdText } = req.body;
     const result = await compatibilityScore(cvText, jdText);
-    return res.code(200).send(result);
+
+    const cacheKey = crypto.randomUUID();
+    await fastify.redis.set(`check:${cacheKey}`, JSON.stringify(result), 'EX', 1800);
+
+    return res.code(200).send({ result, cacheKey });
   });
+
+  fastify.post('/save', { preHandler: authenticate }, async (req, res) => {
+    const userId = req.user.userId!;
+    const response = req.body as { cacheKey: string };
+    await saveCachedResult(fastify, userId, response.cacheKey);
+
+    return res.code(201).send('The result data has been saved!');
+  });
+
+  fastify.get<{ Params: { cacheKey: string } }>('/:cacheKey', { preHandler: authenticate },
+    async (req, res) => {
+      const { cacheKey } = req.params;
+      const cached = await fastify.redis.get(`check:${cacheKey}`);
+      if(!cached) return res.code(404).send({ error: 'Result not found or expired' });
+      return res.code(200).send(JSON.parse(cached));
+    }
+  )
 }
