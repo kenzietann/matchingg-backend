@@ -18,7 +18,8 @@ await dbConnector(fastify);
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
   origin: 'http://localhost:4200',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
 
 fastify.register(fastifyCookie);
