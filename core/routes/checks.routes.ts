@@ -39,8 +39,14 @@ export default async function checksRoutes(fastify: FastifyInstance){
   fastify.post('/save', { preHandler: authenticate }, async (req, res) => {
     const userId = req.user.userId!;
     const response = req.body as { cacheKey: string };
-    await saveCachedResult(fastify, userId, response.cacheKey);
-
+    try {
+      await saveCachedResult(fastify, userId, response.cacheKey);
+    } catch (err: any) {
+      if (err?.driverError?.code === '23505' || err?.code === '23505') {
+        return res.code(200).send('The result data has been saved!');
+      }
+      throw err;
+    }
     return res.code(201).send('The result data has been saved!');
   });
 
