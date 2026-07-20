@@ -107,7 +107,8 @@ export async function saveCachedResult(fastify: FastifyInstance, userId: number,
     breakdown: result.breakdown,
     strengths: result.strengths,
     gaps: result.gaps,
-    recommendation: result.recommendation
+    recommendation: result.recommendation,
+    cacheKey: cacheKey,
   });
 
   return await resultsRepository.save(data);

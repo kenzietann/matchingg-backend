@@ -3,6 +3,7 @@ import { compatibilityScore, extract, saveCachedResult } from "../services/check
 import { rateLimit } from "../services/redis.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
 import { AppError } from "../errors/error.handler.js";
+import { ResultsEntity } from "../entities/results.entity.js";
 
 export default async function checksRoutes(fastify: FastifyInstance){
   fastify.post('/extract', { preHandler: authenticate }, async(req, res) => {
@@ -47,8 +48,14 @@ export default async function checksRoutes(fastify: FastifyInstance){
     async (req, res) => {
       const { cacheKey } = req.params;
       const cached = await fastify.redis.get(`check:${cacheKey}`);
-      if(!cached) return res.code(404).send({ error: 'Result not found or expired' });
-      return res.code(200).send(JSON.parse(cached));
+      if (cached) return res.code(200).send({ result: JSON.parse(cached), cacheKey, isSaved: false });
+
+      const repo = fastify.orm.getRepository(ResultsEntity);
+      const saved = await repo.findOne({ where: { cacheKey } });
+      if (!saved) return res.code(404).send({ error: 'Result not found or expired' });
+
+      const { id, userId, createdAt, cacheKey: _ck, ...result } = saved;
+      return res.code(200).send({ result, cacheKey, isSaved: true });
     }
   )
 }

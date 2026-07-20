@@ -41,6 +41,9 @@ export class ResultsEntity {
   @Column({ type: 'text' })
   recommendation!: string;
 
+  @Column({ type: 'varchar', unique: true })
+  cacheKey!: string;
+
   @CreateDateColumn()
   createdAt!: Date;
 };
