@@ -1,10 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
 
 
 @Entity('users')
 export class UserEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
   @Column({ type: 'varchar' })
   email!: string;
@@ -12,6 +12,12 @@ export class UserEntity {
   @Column({ type: 'varchar' })
   password!: string;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', default: false })
   isVerified!: boolean;
+
+  @Column({ type: 'varchar', default: 'free'})
+  plan!: 'free' | 'paid';
+
+  @CreateDateColumn()
+  createdAt!: Date;
 }

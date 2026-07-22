@@ -87,10 +87,15 @@ export async function compatibilityScore(cvText: string, jdText: string){
   const block = response.content[0];
   if (block.type !== 'text') throw new AppError('Unexpected Response type', 500);
   const raw = block.text.trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(raw);
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new AppError('AI response was invalid, please try again', 502);
+  }
 }
 
-export async function saveCachedResult(fastify: FastifyInstance, userId: number, cacheKey: string){
+export async function saveCachedResult(fastify: FastifyInstance, uuid: string, cacheKey: string){
   const cached = await fastify.redis.get(`check:${cacheKey}`);
   if(!cached) throw new AppError('Result not found or expired', 404);
   const result = JSON.parse(cached);
@@ -98,7 +103,7 @@ export async function saveCachedResult(fastify: FastifyInstance, userId: number,
   const resultsRepository = fastify.orm.getRepository(ResultsEntity);
 
   const data = resultsRepository.create({
-    userId,
+    uuid,
     jobTitle: result.jobTitle,
     companyName: result.companyName,
     score: result.score,

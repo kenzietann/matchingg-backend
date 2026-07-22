@@ -6,6 +6,7 @@
     "@fastify/jwt": "^10.1.0",
     "@fastify/multipart": "^10.1.0",
     "@fastify/postgres": "^6.0.2",
+    "@fastify/rate-limit": "^11.1.0",
     "@fastify/redis": "^8.0.0",
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
@@ -24,9 +25,10 @@
     "@swc/helpers": "^0.5.23",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^26.0.1",
+    "@typescript/typescript6": "^6.0.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "dev": "tsx server.ts"

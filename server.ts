@@ -8,6 +8,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyRedis from "@fastify/redis";
 import fastifyCors from "@fastify/cors";
 import multipart from '@fastify/multipart';
+import rateLimit from '@fastify/rate-limit';
 import { multipartRegister } from "./plugins/multipart.js";
 
 const fastify = Fastify({
@@ -15,6 +16,9 @@ const fastify = Fastify({
 });
 
 await dbConnector(fastify);
+fastify.register(rateLimit, {
+  global: false
+});
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
   origin: 'http://localhost:4200',

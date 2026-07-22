@@ -2,11 +2,11 @@ import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeor
 
 @Entity('results')
 export class ResultsEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @Column({ type: 'int' })
-  userId!: number;
+  @Column({ type: 'uuid' })
+  uuid!: string;
 
   @Column({ type: 'varchar', nullable: true })
   jobTitle!: string | null;

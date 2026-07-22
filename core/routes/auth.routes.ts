@@ -2,26 +2,36 @@ import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
 import { loginUser, signup, verifyEmail } from "../services/auth.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
-import { rateLimit } from "../services/redis.service.js";
-import { AppError } from "../errors/error.handler.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
-  fastify.post('/signup', async (req, res) => {
+  fastify.post('/signup', { config: {
+    rateLimit: {
+      max: 3,
+      timeWindow: '30 minutes'
+    }
+  } }, async (req, res) => {
     const userData = req.body as AuthDto;
-    await signup(fastify, req.ip, userData);
-    return res.code(200).send('')
+    await signup(fastify, userData);
+    return res.code(201).send('Email Verification link has been sent! Please check your email');
   });
 
-  fastify.get('/verify-email', async (req, res) => {
+  fastify.get('/verify-email', {
+    config: {
+      rateLimit: {
+        max: 10,
+        timeWindow: '15 minutes'
+      }
+    }
+  }, async (req, res) => {
     const { token } = req.query as { token: string };
     await verifyEmail(fastify, token);
     return res.code(200).send({ message: 'Email verified successfully' });
   });
 
 
-  fastify.post('/login', async(req, res) => {
+  fastify.post('/login', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async(req, res) => {
     const userData = req.body as AuthDto;
-    const token = await loginUser(fastify, req.ip, userData);
+    const token = await loginUser(fastify, userData);
 
     res.cookie('token', token.token, {
       httpOnly: true,
@@ -34,12 +44,39 @@ export default async function authRoutes(fastify: FastifyInstance){
   });
 
   fastify.get('/me', {
-     preHandler: authenticate
+     preHandler: authenticate,
+     config: {
+      rateLimit: {
+        max: 20,
+        timeWindow: '1 minute'
+      }
+     }
     }, async(req, res) => {
-      const check_auth_ratelimit_key = `ratelimit:checkauth:${req.ip}`;
-      const attempts = await rateLimit(fastify, check_auth_ratelimit_key, 60);
-      if(attempts >= 20) return res.code(429).send({ message: 'Too many requests' });
-      return res.code(200).send({ message: 'Authenticated' });
+      const plan = req.user.plan ?? 'free';
+      const features = {
+        free: {
+          checks: 3,
+          atsScoring: false,
+          strengthgaps: false,
+          airecommendation: false,
+          saveresult: false,
+          exporttofile: false
+        },
+        paid: {
+          checks: -1,
+          atsScoring: true,
+          strengthgaps: true,
+          airecommendation: true,
+          saveresult: true,
+          exporttofile: true
+        }
+      }[plan];
+
+      return res.code(200).send({ 
+        sub: req.user.sub,
+        plan,
+        features
+      });
   });
 
   fastify.post('/logout', async(req, res) => {

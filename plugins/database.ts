@@ -7,11 +7,7 @@ import { ResultsEntity } from '../core/entities/results.entity.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'kenkzuha',
-  password: '',
-  database: 'matchingg',
+  url: process.env.DB_CONNECTION,
   synchronize: true,
   logging: false,
   entities: [UserEntity, ResultsEntity],
