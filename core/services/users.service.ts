@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
 import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
+import { ResultsEntity } from "../entities/results.entity.js";
 
 export async function createVerifiedUser(fastify: FastifyInstance, userData: AuthDto){
   const userRepository = fastify.orm.getRepository(UserEntity);
@@ -13,6 +14,26 @@ export async function createVerifiedUser(fastify: FastifyInstance, userData: Aut
     });
     await userRepository.save(user);
   } catch (err) {
-    throw new AppError('Failed to create user', 500);
+    throw new AppError('Failed to create user', 500, 'user_create_failed');
   }
+}
+
+export async function updateUserEmail(fastify: FastifyInstance, uuid: string, newEmail: string){
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  try {
+    await userRepository.update({ id: uuid }, { email: newEmail });
+  } catch (err) {
+    throw new AppError('Failed to update email', 500, 'email_update_failed');
+  }
+}
+
+export async function deleteUser(fastify: FastifyInstance, uuid: string){
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  const resultsRepository = fastify.orm.getRepository(ResultsEntity);
+
+  const user = await userRepository.findOne({ where: { id: uuid } });
+  if(!user) throw new AppError('User not found!', 404, 'not_found');
+
+  await resultsRepository.delete({ uuid });
+  await userRepository.delete({ id: uuid });
 }

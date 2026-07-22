@@ -10,8 +10,8 @@ declare module '@fastify/jwt' {
 export async function authenticate(req: FastifyRequest, res: FastifyReply) {
   try {
     await req.jwtVerify();
-    if(req.user.type !== 'login' || !req.user.sub) return res.code(401).send({ message: 'Unauthorized' });
+    if(req.user.type !== 'login' || !req.user.sub) return res.code(401).send({ message: 'Unauthorized', code: 'unauthorized' });
   } catch(err) {
-    res.code(401).send({ message: 'Unauthorized' });
+    res.code(401).send({ message: 'Unauthorized', code: 'unauthorized' });
   }
 }

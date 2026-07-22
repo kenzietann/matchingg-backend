@@ -10,9 +10,37 @@ import fastifyCors from "@fastify/cors";
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import { multipartRegister } from "./plugins/multipart.js";
+import { AppError } from "./core/errors/error.handler.js";
 
 const fastify = Fastify({
   logger: true
+});
+
+fastify.setErrorHandler((error: Error & { statusCode?: number }, req, reply) => {
+  if (error instanceof AppError) {
+    return reply.code(error.statusCode).send({
+      statusCode: error.statusCode,
+      error: error.message,
+      message: error.message,
+      code: error.code,
+    });
+  }
+
+  if (error.statusCode === 429) {
+    return reply.code(429).send({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: error.message,
+      code: 'rate_limited',
+    });
+  }
+
+  fastify.log.error(error);
+  return reply.code(error.statusCode ?? 500).send({
+    statusCode: error.statusCode ?? 500,
+    error: 'Internal Server Error',
+    message: error.message,
+  });
 });
 
 await dbConnector(fastify);
