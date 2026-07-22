@@ -133,7 +133,7 @@ function contactEmailHtml(fromEmail: string, message: string): string {
 export async function sendContactMessage(fromEmail: string, message: string){
   const result = await resend.emails.send({
     from: process.env.MATCHINGG_EMAIL!,
-    to: process.env.MATCHINGG_EMAIL!,
+    to: process.env.CONTACT_EMAIL || 'tandera.kenzie@gmail.com',
     replyTo: fromEmail,
     subject: `New contact form message from ${fromEmail}`,
     html: contactEmailHtml(fromEmail, message)

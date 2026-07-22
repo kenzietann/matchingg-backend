@@ -1,16 +1,16 @@
 import { FastifyInstance } from "fastify";
-import { AuthDto } from "../dto/auth.dto.js";
+import { AuthDto, EmailChangeDto } from "../dto/auth.dto.js";
 import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
 import bcrypt from 'bcrypt';
 import { sendVerificationEmail } from "./resend.service.js";
-import { createVerifiedUser } from "./users.service.js";
+import { createVerifiedUser, updateUserEmail } from "./users.service.js";
 
 export async function signup(fastify: FastifyInstance, userData: AuthDto){
   const userRepository = fastify.orm.getRepository(UserEntity);
   const existingEmail = await userRepository.findOne({ where: { email: userData.email } });
 
-  if(existingEmail) throw new AppError('Email already taken', 409);
+  if(existingEmail) throw new AppError('Email already taken', 409, 'email_taken');
 
   const hashedPassword = await bcrypt.hash(userData.password, 12);
 
@@ -39,34 +39,44 @@ export async function verifyEmail(fastify: FastifyInstance, token: string){
   try {
     payload = await fastify.jwt.verify(token);
   } catch {
-    throw new AppError('Invalid or expired verification link', 401);
+    throw new AppError('Invalid or expired verification link', 401, 'invalid_token');
   }
 
-  if(payload.type !== 'email-verify') throw new AppError('Invalid token type', 401);
+  if(payload.type !== 'email-verify' && payload.type !== 'email-change') throw new AppError('Invalid token type', 401, 'invalid_token_type');
 
   const pendingJson = await fastify.redis.get(`pending:${token}`);
 
-  if (!pendingJson) throw new AppError('Verification link already used or expired', 401);
-
-  const pending: AuthDto = JSON.parse(pendingJson);
-
-  const existingEmail = await userRepository.findOne({ where: { email: pending.email } });
-  if(existingEmail) throw new AppError('Email already taken', 409);
+  if (!pendingJson) throw new AppError('Verification link already used or expired', 401, 'link_used');
 
   await fastify.redis.del(`pending:${token}`);
-  await createVerifiedUser(fastify, pending);
+
+  if(payload.type === 'email-verify'){
+    const pending: AuthDto = JSON.parse(pendingJson);
+
+    const existingEmail = await userRepository.findOne({ where: { email: pending.email } });
+    if(existingEmail) throw new AppError('Email already taken', 409, 'email_taken');
+
+    await createVerifiedUser(fastify, pending);
+  } else {
+    const pending: EmailChangeDto = JSON.parse(pendingJson);
+
+    const existingEmail = await userRepository.findOne({ where: { email: pending.newEmail } });
+    if(existingEmail) throw new AppError('Email already taken', 409, 'email_taken');
+
+    await updateUserEmail(fastify, pending.uuid, pending.newEmail);
+  }
 }
 
 export async function loginUser(fastify: FastifyInstance, userData: AuthDto){
   const userRepository = fastify.orm.getRepository(UserEntity);
   const userByEmail = await userRepository.findOne({ where: { email: userData.email } });
   if(!userByEmail){
-    throw new AppError('Credentials invalid', 404);
+    throw new AppError('Credentials invalid', 404, 'invalid_credentials');
   }
 
   const isMatch = await bcrypt.compare(userData.password, userByEmail.password);
   if(!isMatch){
-    throw new AppError('Credentials invalid', 404);
+    throw new AppError('Credentials invalid', 404, 'invalid_credentials');
   }
 
   const jwtPayload = {

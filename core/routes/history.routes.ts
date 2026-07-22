@@ -32,7 +32,7 @@ export async function historyRoutes(fastify: FastifyInstance){
 
     const repo = fastify.orm.getRepository(ResultsEntity);
     const item = await repo.findOne({ where: { id, uuid } });
-    if (!item) return res.code(404).send({ error: 'Not found' });
+    if (!item) return res.code(404).send({ error: 'Not found', code: 'not_found' });
 
     await repo.remove(item);
     return res.code(200).send({ message: 'Deleted' });

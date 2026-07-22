@@ -14,12 +14,12 @@ export default async function checksRoutes(fastify: FastifyInstance){
     } 
   }, async(req, res) => {
     const userCV = await req.file();
-    if(!userCV) return res.code(400).send({ error: 'No file uploaded' });
+    if(!userCV) return res.code(400).send({ error: 'No file uploaded', code: 'no_file' });
 
     const fileMimeType = userCV.mimetype;
 
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg','application/vnd.openxmlformats-officedocument.wordprocessingml.document']
-    if(!allowedMimeTypes.includes(fileMimeType)) return res.code(415).send({ error: 'Unsupported file type' });
+    if(!allowedMimeTypes.includes(fileMimeType)) return res.code(415).send({ error: 'Unsupported file type', code: 'unsupported_file' });
 
     const buffer = await userCV.toBuffer();
 
@@ -82,7 +82,7 @@ export default async function checksRoutes(fastify: FastifyInstance){
 
       const repo = fastify.orm.getRepository(ResultsEntity);
       const saved = await repo.findOne({ where: { cacheKey } });
-      if (!saved) return res.code(404).send({ error: 'Result not found or expired' });
+      if (!saved) return res.code(404).send({ error: 'Result not found or expired', code: 'result_not_found' });
 
       const { id, uuid, createdAt, cacheKey: _ck, ...result } = saved;
       return res.code(200).send({ result, cacheKey, isSaved: true });
