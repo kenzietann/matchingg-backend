@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
-import { loginUser, signup, verifyEmail } from "../services/auth.service.js";
+import { forgotPassword, loginUser, resetPassword, signup, verifyEmail } from "../services/auth.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
@@ -86,5 +86,41 @@ export default async function authRoutes(fastify: FastifyInstance){
       path: '/',
     });
     return res.code(200).send({ message: "Logged out successfully" });
+  });
+
+  fastify.post('/forgot-password', {
+    config: {
+      rateLimit: {
+        max: 3,
+        timeWindow: '30 minutes'
+      }
+    }
+  }, async(req, res) => {
+    const { email } = req.body as { email: string };
+
+    await forgotPassword(fastify, email);
+
+    return res.code(200).send({ message: 'If an account exists for that email, a password reset link has been sent.' });
+  });
+
+  fastify.post('/reset-password', {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '30 minutes'
+      }
+    }
+  }, async(req, res) => {
+    const { token, newPassword } = req.body as { token: string; newPassword: string };
+
+    await resetPassword(fastify, token, newPassword);
+
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+    });
+
+    return res.code(200).send({ message: 'Password reset successfully' });
   });
 }

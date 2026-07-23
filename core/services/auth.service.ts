@@ -3,7 +3,7 @@ import { AuthDto, EmailChangeDto } from "../dto/auth.dto.js";
 import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
 import bcrypt from 'bcrypt';
-import { sendVerificationEmail } from "./resend.service.js";
+import { sendVerificationEmail, sendPasswordResetEmail } from "./resend.service.js";
 import { createVerifiedUser, updateUserEmail } from "./users.service.js";
 
 export async function signup(fastify: FastifyInstance, userData: AuthDto){
@@ -89,4 +89,42 @@ export async function loginUser(fastify: FastifyInstance, userData: AuthDto){
     message: 'Login Successful!',
     token: fastify.jwt.sign(jwtPayload)
   }
+}
+
+export async function forgotPassword(fastify: FastifyInstance, email: string){
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  const user = await userRepository.findOne({ where: { email } });
+
+  if(!user) return;
+
+  const token = fastify.jwt.sign(
+    { type: 'reset-password' },
+    { expiresIn: '15m' }
+  );
+
+  await fastify.redis.set(`reset:${token}`, user.id, 'EX', 900);
+
+  const magicLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
+  await sendPasswordResetEmail(email, magicLink);
+}
+
+export async function resetPassword(fastify: FastifyInstance, token: string, newPassword: string){
+  let payload: any;
+
+  try {
+    payload = await fastify.jwt.verify(token);
+  } catch {
+    throw new AppError('Invalid or expired reset link', 401, 'invalid_token');
+  }
+
+  if(payload.type !== 'reset-password') throw new AppError('Invalid token type', 401, 'invalid_token_type');
+
+  const userId = await fastify.redis.get(`reset:${token}`);
+  if(!userId) throw new AppError('Reset link already used or expired', 401, 'link_used');
+
+  await fastify.redis.del(`reset:${token}`);
+
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await userRepository.update({ id: userId }, { password: hashedPassword });
 }
