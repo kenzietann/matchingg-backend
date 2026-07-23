@@ -7,10 +7,10 @@ import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import fastifyRedis from "@fastify/redis";
 import fastifyCors from "@fastify/cors";
-import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
 import { multipartRegister } from "./plugins/multipart.js";
 import { AppError } from "./core/errors/error.handler.js";
+import fastifyHelmet from "@fastify/helmet";
 
 const fastify = Fastify({
   logger: true
@@ -49,9 +49,20 @@ fastify.register(rateLimit, {
 });
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
-  origin: 'https://matchingg.com',
+  origin: ['https://matchingg.com', 'https://www.matchingg.com'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+});
+
+fastify.register(fastifyHelmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],  
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    }
+  }
 });
 
 fastify.register(fastifyCookie);

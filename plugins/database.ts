@@ -8,7 +8,7 @@ import { ResultsEntity } from '../core/entities/results.entity.js';
 export const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DB_CONNECTION,
-  synchronize: true,
+  synchronize: false,
   logging: false,
   entities: [UserEntity, ResultsEntity],
 });
