@@ -49,7 +49,7 @@ fastify.register(rateLimit, {
 });
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
-  origin: ['https://matchingg.com', 'https://www.matchingg.com', 'localhost', '127.0.0.1'],
+  origin: ['https://matchingg.com', 'https://www.matchingg.com', 'localhost:4200', '127.0.0.1:4200'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
