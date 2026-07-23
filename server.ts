@@ -49,7 +49,7 @@ fastify.register(rateLimit, {
 });
 multipartRegister(fastify);
 fastify.register(fastifyCors, {
-  origin: ['https://matchingg.com', 'https://www.matchingg.com'],
+  origin: ['https://matchingg.com', 'https://www.matchingg.com', 'localhost', '127.0.0.1'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 });
@@ -83,6 +83,6 @@ fastify.register(routes);
 try {
   await fastify.listen({ port: 3002, host: '0.0.0.0' });
 } catch (err) {
-  fastify.log.error(err);
+  fastify.log.error(err); 
   process.exit(1);
 }
