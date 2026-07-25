@@ -6,6 +6,7 @@ const required = [
   'MATCHINGG_EMAIL',
   'FRONTEND_URL',
   'GOOGLE_CLIENT_ID',
+  'GOOGLE_CLIENT_SECRET',
 ];
 
 const missing = required.filter((key) => !process.env[key]);
@@ -27,4 +28,5 @@ export const env = {
   frontendUrl: process.env.FRONTEND_URL!,
   port: Number(process.env.PORT ?? 3002),
   googleClientId: process.env.GOOGLE_CLIENT_ID!,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET!,
 };

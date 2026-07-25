@@ -132,9 +132,9 @@ export default async function authRoutes(fastify: FastifyInstance){
       }
     }
   }, async (req, res) => {
-    const { idToken } = req.body as { idToken: string };
+    const { code } = req.body as { code: string };
 
-   const result = await googleAuth(fastify, idToken);
+   const result = await googleAuth(fastify, code);
     
     res.cookie('token', result!.token, {
       httpOnly: true,

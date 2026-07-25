@@ -136,9 +136,21 @@ export async function resetPassword(fastify: FastifyInstance, token: string, new
   await userRepository.update({ id: userId }, { password: hashedPassword });
 }
 
-export async function googleAuth(fastify: FastifyInstance, token: string){
+export async function googleAuth(fastify: FastifyInstance, code: string){
   const userRepository = fastify.orm.getRepository(UserEntity);
-  const { data } = await axios.get<GoogleTokenPayload>(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+
+  const tokenRes = await axios.post<{ id_token: string }>('https://oauth2.googleapis.com/token', {
+    code,
+    client_id: env.googleClientId,
+    client_secret: env.googleClientSecret,
+    redirect_uri: `${env.frontendUrl}/auth/google/callback`,
+
+    grant_type: 'authorization_code',
+  });
+
+  const { data } = await axios.get<GoogleTokenPayload>(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${tokenRes.data.id_token}`
+  );
 
   if(data.email_verified !== 'true') throw new AppError('Email not verified by Google', 400, 'google_email_unverified');
   if(data.aud !== env.googleClientId) throw new AppError('Invalid token', 401, 'invalid_token');
