@@ -3,6 +3,7 @@ import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
 import { sendVerificationEmail } from "./resend.service.js";
 import bcrypt from 'bcrypt';
+import { env } from '../env.js';
 
 export async function getEmailAndPlan(fastify: FastifyInstance, uuid: string){
   const userRepository = fastify.orm.getRepository(UserEntity);
@@ -34,7 +35,7 @@ export async function changeEmail(fastify: FastifyInstance, uuid: string, newEma
 
   await fastify.redis.set(`pending:${token}`, JSON.stringify(pendingData), 'EX', 900);
 
-  const magicLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
+  const magicLink = `${env.frontendUrl}/auth/verify-email?token=${token}`;
   await sendVerificationEmail(newEmail, magicLink);
 
   return { message: 'Check your new email inbox!' };

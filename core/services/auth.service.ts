@@ -26,7 +26,7 @@ export async function signup(fastify: FastifyInstance, userData: AuthDto){
 
   await fastify.redis.set(`pending:${token}`, JSON.stringify(pendingData), "EX", 900);
   
-  const magicLink = `${process.env.FRONTEND_URL}/auth/verify-email?token=${token}`;
+  const magicLink = `${env.frontendUrl}/auth/verify-email?token=${token}`;
   await sendVerificationEmail(userData.email, magicLink);
 
   return { message: 'Account created! Please check your email to verify your account' };
@@ -104,7 +104,7 @@ export async function forgotPassword(fastify: FastifyInstance, email: string){
 
   await fastify.redis.set(`reset:${token}`, user.id, 'EX', 900);
 
-  const magicLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${token}`;
+  const magicLink = `${env.frontendUrl}/auth/reset-password?token=${token}`;
   await sendPasswordResetEmail(email, magicLink);
 }
 

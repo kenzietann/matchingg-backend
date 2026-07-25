@@ -1,12 +1,13 @@
 import mammoth from 'mammoth';
 import Tesseract from 'tesseract.js';
 import Anthropic from "@anthropic-ai/sdk";
-import { AppError } from '../errors/error.handler.js';  
+import { AppError } from '../errors/error.handler.js';
 import { FastifyInstance } from 'fastify';
 import { ResultsEntity } from '../entities/results.entity.js';
+import { env } from '../env.js';
 
 const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY
+  apiKey: env.anthropicApiKey
 });
 
 export async function extract(userCV: Buffer, fileType: string): Promise<string> {

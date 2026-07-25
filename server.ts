@@ -1,5 +1,6 @@
 import "reflect-metadata";
-import "dotenv/config"
+import "dotenv/config";
+import { env } from "./core/env.js";
 import Fastify from 'fastify';
 import routes from "./core/routes/routes.handler.js";
 import { dbConnector } from './plugins/database.js';
@@ -67,7 +68,7 @@ fastify.register(fastifyHelmet, {
 
 fastify.register(fastifyCookie);
 fastify.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET!,
+  secret: env.jwtSecret,
   cookie: {
     cookieName: 'token',
     signed: false
@@ -81,7 +82,7 @@ fastify.register(fastifyRedis, {
 fastify.register(routes);
 
 try {
-  await fastify.listen({ port: 3002, host: '0.0.0.0' });
+  await fastify.listen({ port: env.port, host: '0.0.0.0' });
 } catch (err) {
   fastify.log.error(err); 
   process.exit(1);

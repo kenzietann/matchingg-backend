@@ -1,6 +1,7 @@
 import { Resend } from "resend";
+import { env } from '../env.js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(env.resendApiKey);
 
 function verificationEmailHtml(link: string): string {
   return `
@@ -72,7 +73,7 @@ function verificationEmailHtml(link: string): string {
 
 export async function sendVerificationEmail(email: string, link: string){
   const result = await resend.emails.send({
-    from: process.env.MATCHINGG_EMAIL!,
+    from: env.matchinggEmail,
     to: email,
     subject: 'Verify your Matchingg account',
     html: verificationEmailHtml(link)
@@ -153,7 +154,7 @@ function passwordResetEmailHtml(link: string): string {
 
 export async function sendPasswordResetEmail(email: string, link: string){
   const result = await resend.emails.send({
-    from: process.env.MATCHINGG_EMAIL!,
+    from: env.matchinggEmail,
     to: email,
     subject: 'Reset your Matchingg password',
     html: passwordResetEmailHtml(link)
@@ -213,8 +214,8 @@ function contactEmailHtml(fromEmail: string, message: string): string {
 
 export async function sendContactMessage(fromEmail: string, message: string){
   const result = await resend.emails.send({
-    from: process.env.MATCHINGG_EMAIL!,
-    to: process.env.CONTACT_EMAIL || 'tandera.kenzie@gmail.com',
+    from: env.matchinggEmail,
+    to: env.contactEmail,
     replyTo: fromEmail,
     subject: `New contact form message from ${fromEmail}`,
     html: contactEmailHtml(fromEmail, message)
