@@ -33,12 +33,15 @@ cp .env.example .env
 required env vars
 
 ```
-DB_CONNECTION      postgres connection string
-JWT_SECRET         any random secret string
-ANTHROPIC_API_KEY  your Anthropic API key
-RESEND_API_KEY     your Resend API key
-MATCHINGG_EMAIL    the from address for emails
-FRONTEND_URL       http://localhost:4200 for local dev
+DB_CONNECTION         postgres connection string
+JWT_SECRET            any random secret string
+ANTHROPIC_API_KEY     your Anthropic API key
+RESEND_API_KEY        your Resend API key
+MATCHINGG_EMAIL       the from address for emails
+CONTACT_EMAIL         where contact form messages go (optional, has default)
+FRONTEND_URL          http://localhost:4200 for local dev
+GOOGLE_CLIENT_ID      your Google OAuth client ID
+GOOGLE_CLIENT_SECRET  your Google OAuth client secret
 ```
 
 run in dev mode
