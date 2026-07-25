@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { AuthDto } from "../dto/auth.dto.js";
-import { forgotPassword, loginUser, resetPassword, signup, verifyEmail } from "../services/auth.service.js";
+import { forgotPassword, googleAuth, loginUser, resetPassword, signup, verifyEmail } from "../services/auth.service.js";
 import { authenticate } from "../hooks/auth.hooks.js";
 
 export default async function authRoutes(fastify: FastifyInstance){
@@ -122,5 +122,27 @@ export default async function authRoutes(fastify: FastifyInstance){
     });
 
     return res.code(200).send({ message: 'Password reset successfully' });
+  });
+
+  fastify.post('/google', {
+    config: {
+      rateLimit: {
+        max: 5,
+        timeWindow: '30 minutes'
+      }
+    }
+  }, async (req, res) => {
+    const { idToken } = req.body as { idToken: string };
+
+   const result = await googleAuth(fastify, idToken);
+    
+    res.cookie('token', result!.token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 7 * 24 * 60 * 60,
+      path: '/'
+    });
+
+    res.code(200).send({ message: result.message });
   });
 }

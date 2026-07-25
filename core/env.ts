@@ -5,6 +5,7 @@ const required = [
   'RESEND_API_KEY',
   'MATCHINGG_EMAIL',
   'FRONTEND_URL',
+  'GOOGLE_CLIENT_ID',
 ];
 
 const missing = required.filter((key) => !process.env[key]);
@@ -25,4 +26,5 @@ export const env = {
   contactEmail: process.env.CONTACT_EMAIL ?? 'tandera.kenzie@gmail.com',
   frontendUrl: process.env.FRONTEND_URL!,
   port: Number(process.env.PORT ?? 3002),
+  googleClientId: process.env.GOOGLE_CLIENT_ID!,
 };

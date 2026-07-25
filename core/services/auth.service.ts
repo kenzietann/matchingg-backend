@@ -1,10 +1,12 @@
 import { FastifyInstance } from "fastify";
-import { AuthDto, EmailChangeDto } from "../dto/auth.dto.js";
+import { AuthDto, EmailChangeDto, GoogleTokenPayload } from "../dto/auth.dto.js";
 import { UserEntity } from "../entities/user.entity.js";
 import { AppError } from "../errors/error.handler.js";
 import bcrypt from 'bcrypt';
 import { sendVerificationEmail, sendPasswordResetEmail } from "./resend.service.js";
-import { createVerifiedUser, updateUserEmail } from "./users.service.js";
+import { createGoogleUser, createVerifiedUser, updateUserEmail } from "./users.service.js";
+import axios from 'axios';
+import { env } from "../env.js";
 
 export async function signup(fastify: FastifyInstance, userData: AuthDto){
   const userRepository = fastify.orm.getRepository(UserEntity);
@@ -12,6 +14,7 @@ export async function signup(fastify: FastifyInstance, userData: AuthDto){
 
   if(existingEmail) throw new AppError('Email already taken', 409, 'email_taken');
 
+  if(!userData.password) throw new AppError('Password is required', 400, 'password_required');
   const hashedPassword = await bcrypt.hash(userData.password, 12);
 
   const token = fastify.jwt.sign(
@@ -74,6 +77,10 @@ export async function loginUser(fastify: FastifyInstance, userData: AuthDto){
     throw new AppError('Credentials invalid', 404, 'invalid_credentials');
   }
 
+  if (!userByEmail.password) {
+    throw new AppError('This account uses Google Sign-In. Please log in with Google.', 400, 'google_account');
+  }
+
   const isMatch = await bcrypt.compare(userData.password, userByEmail.password);
   if(!isMatch){
     throw new AppError('Credentials invalid', 404, 'invalid_credentials');
@@ -127,4 +134,59 @@ export async function resetPassword(fastify: FastifyInstance, token: string, new
   const userRepository = fastify.orm.getRepository(UserEntity);
   const hashedPassword = await bcrypt.hash(newPassword, 12);
   await userRepository.update({ id: userId }, { password: hashedPassword });
+}
+
+export async function googleAuth(fastify: FastifyInstance, token: string){
+  const userRepository = fastify.orm.getRepository(UserEntity);
+  const { data } = await axios.get<GoogleTokenPayload>(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+
+  if(data.email_verified !== 'true') throw new AppError('Email not verified by Google', 400, 'google_email_unverified');
+  if(data.aud !== env.googleClientId) throw new AppError('Invalid token', 401, 'invalid_token');
+
+  const userGoogleId = await userRepository.findOne({ where: { googleId: data.sub } });
+  if(userGoogleId) {
+    const jwtPayload = {
+      sub: userGoogleId.id,
+      plan: userGoogleId.plan,
+      type: 'login'
+    };
+    return {
+      message: 'Login Successful!',
+      token: fastify.jwt.sign(jwtPayload)
+    }
+  }
+
+  const userEmail = await userRepository.findOne({ where: { email: data.email } });
+  if(userEmail) {
+    await userRepository.update({ id: userEmail.id }, { googleId: data.sub });
+
+    const jwtPayload = {
+      sub: userEmail.id,
+      plan: userEmail.plan,
+      type: 'login'
+    };
+
+    return {
+      message: 'Login Successful!',
+      token: fastify.jwt.sign(jwtPayload)
+    }
+  } else {
+    const userData = {
+      email: data.email,
+      googleId: data.sub
+    }
+
+    const createdUser = await createGoogleUser(fastify, userData);
+
+    const jwtPayload = {
+      sub: createdUser.id,
+      plan: createdUser.plan,
+      type: 'login'
+    };
+
+    return {
+      message: 'Login Successful!',
+      token: fastify.jwt.sign(jwtPayload)
+    }
+  }
 }
