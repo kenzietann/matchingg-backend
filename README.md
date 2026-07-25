@@ -79,5 +79,5 @@ Claude was used as a coding assistant during development. same way you'd use a s
 
 ## related
 
-- frontend: [matchingg-frontend](https://github.com/kenkzuha/matchingg-frontend)
+- frontend: [matchingg-frontend](https://github.com/kenzietann/matchingg-frontend)
 - live site: https://www.matchingg.com
