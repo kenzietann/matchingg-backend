@@ -33,6 +33,11 @@
   },
   "scripts": {
     "dev": "tsx server.ts",
+    "typeorm": "tsx ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate ./migrations/Migration -d ./plugins/database.ts",
+    "migration:run": "npm run typeorm -- migration:run -d ./plugins/database.ts",
+    "migration:create": "npm run typeorm -- migration:create ./migrations/ManualMigration",
+    "migration:revert": "npm run typeorm -- migration:revert -d ./plugins/database.ts",
     "start": "NODE_ENV=production tsx server.ts"
   }
 }
